@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GraphQL Profile</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <header class="top">
+    <div class="brand">My GraphQL Profile</div>
+    <button id="logoutBtn" class="btn ghost" hidden>Logout</button>
+  </header>
+
+  <main class="wrap">
+    <section id="loginView" class="card">
+      <h1>Login</h1>
+      <p class="muted">
+        Enter <b>username or email and password</b> to get a JWT.
+      </p>
+
+      <!--Login form-->
+      <form id="loginForm" class="form">
+        <label>
+          Username / Email :
+          <input
+            id="identifier"
+            required
+            autocomplete="username"
+            placeholder="Enter your username or email"
+          />
+        </label>
+
+        <label>
+          Password :
+          <input
+            id="password"
+            type="password"
+            required
+            autocomplete="current-password"
+            placeholder="Enter your password"
+          />
+        </label>
+        <button class="btn primary" type="submit">Login</button>
+
+        <div id="loginError" class="error" role="alert"></div>
+      </form>
+    </section>
+
+    <!--PROFILE VIEW-->
+    <section id="profileView" hidden>
+      <div class="grid">
+        <div class="card">
+          <h2>Identity</h2>
+          <div class="kv">
+            <div>
+              <span class="muted">Login</span>
+              <div id="pLogin">—</div>
+            </div>
+            <div>
+              <span class="muted">User ID</span>
+              <div id="pId">—</div>
+            </div>
+          </div>
+          <div class="big" id="xpTotal">Total XP: —</div>
+        </div>
+
+        <div class="card">
+          <h2>Audit ratio</h2>
+          <div class="kv">
+            <div>
+              <span class="muted">Up</span>
+              <div id="audUp">—</div>
+            </div>
+            <div>
+              <span class="muted">Down</span>
+              <div id="audDown">—</div>
+            </div>
+            <div>
+              <span class="muted">Ratio</span>
+              <div id="audRatio">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Pass / Fail</h2>
+          <div class="kv">
+            <div>
+              <span class="muted">Pass</span>
+              <div id="pfPass">—</div>
+            </div>
+            <div>
+              <span class="muted">Fail</span>
+              <div id="pfFail">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- statistics section with SVG charts-->
+       <div class="grid">
+         <div class="card">
+            <h2>XP over time</h2>
+            <svg id="xpChart"></svg>
+         </div>
+
+         <div class="card">
+            <h2>Top projects XP</h2>
+            <svg id="topChart"></svg>
+         </div>
+       </div>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
