@@ -1,7 +1,14 @@
+// public/app.js
+
 import { signin, saveToken, getToken, logout } from "./auth.js";
 import { graphql } from "./api.js";
 import { Q_ME, Q_DASHBOARD } from "./queries.js";
-import { renderXpAreaChart, renderTopProjectsBarChart } from "./charts.js";
+import {
+  renderXpAreaChart,
+  renderTopProjectsBarChart,
+  renderPassFailDonut,
+  renderAuditCompare,
+} from "./charts.js";
 
 const loginView = document.getElementById("loginView");
 const profileView = document.getElementById("profileView");
@@ -13,19 +20,31 @@ const loginError = document.getElementById("loginError");
 const identifierInput = document.getElementById("identifier");
 const passwordInput = document.getElementById("password");
 
+// Hero
+const avatarInitials = document.getElementById("avatarInitials");
+const fullName = document.getElementById("fullName");
 const pLogin = document.getElementById("pLogin");
 const pId = document.getElementById("pId");
 const xpTotal = document.getElementById("xpTotal");
 
+// Small cards
+const xpBig = document.getElementById("xpBig");
+const xpMeta = document.getElementById("xpMeta");
+
+const auditBig = document.getElementById("auditBig");
 const audUp = document.getElementById("audUp");
 const audDown = document.getElementById("audDown");
-const audRatio = document.getElementById("audRatio");
+const audRatio = document.getElementById("audRatio"); // may exist in older HTML, safe to keep
 
+const pfBig = document.getElementById("pfBig");
 const pfPass = document.getElementById("pfPass");
 const pfFail = document.getElementById("pfFail");
 
+// Charts
 const xpChart = document.getElementById("xpChart");
 const topChart = document.getElementById("topChart");
+const pfChart = document.getElementById("pfChart");
+const auditChart = document.getElementById("auditChart");
 
 function setView(view) {
   const showProfile = view === "profile";
@@ -52,6 +71,23 @@ function renderRoute() {
   setView("login");
 }
 
+function fmtShort(n) {
+  const v = Number(n) || 0;
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)}M`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}k`;
+  return `${Math.round(v)}`;
+}
+
+function makeInitials(login) {
+  const s = (login || "").trim();
+  if (!s) return "U";
+  if (s.includes(" ")) {
+    const parts = s.split(/\s+/).filter(Boolean);
+    return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
+  }
+  return (s[0] + (s[1] || "")).toUpperCase();
+}
+
 function simplifyPath(path) {
   const parts = (path || "").split("/").filter(Boolean);
   return parts[parts.length - 1] || path || "unknown";
@@ -59,19 +95,19 @@ function simplifyPath(path) {
 
 function buildXpPoints(transactions) {
   const xpTx = transactions
-    .filter(t => t.type === "xp" && typeof t.amount === "number" && t.createdAt)
+    .filter((t) => t.type === "xp" && typeof t.amount === "number" && t.createdAt)
     .slice()
     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
   let cum = 0;
-  return xpTx.map(t => {
+  return xpTx.map((t) => {
     cum += t.amount;
     return { x: new Date(t.createdAt), y: cum };
   });
 }
 
 function buildTopProjectRows(transactions) {
-  const xpTx = transactions.filter(t => t.type === "xp" && typeof t.amount === "number");
+  const xpTx = transactions.filter((t) => t.type === "xp" && typeof t.amount === "number");
 
   const map = new Map();
   for (const t of xpTx) {
@@ -92,45 +128,56 @@ async function renderProfile() {
     const me = meData.user?.[0];
     if (!me) throw new Error("User not found.");
 
+    // Hero info
     pLogin.textContent = me.login;
     pId.textContent = me.id;
+    fullName.textContent = me.login;
+    avatarInitials.textContent = makeInitials(me.login);
 
     // Nested + variables query (required)
     const dashData = await graphql(Q_DASHBOARD, { uid: me.id });
-
     const transactions = dashData.transaction || [];
     const progress = dashData.progress || [];
 
-    // Total XP
-    const totalXp = transactions
-      .filter(t => t.type === "xp")
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
-    xpTotal.textContent = `Total XP: ${Math.round(totalXp)}`;
+    // XP totals
+    const xpTx = transactions.filter((t) => t.type === "xp");
+    const totalXp = xpTx.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    // Audit ratio (up/down may vary by schema, but this works if present)
-    const up = transactions.filter(t => t.type === "up").reduce((s, t) => s + (t.amount || 0), 0);
-    const down = transactions.filter(t => t.type === "down").reduce((s, t) => s + (t.amount || 0), 0);
+    xpTotal.textContent = fmtShort(totalXp);
+    xpBig.textContent = fmtShort(totalXp);
+    xpMeta.textContent = `${xpTx.length} XP transactions`;
 
-    audUp.textContent = Math.round(up);
-    audDown.textContent = Math.round(down);
-    audRatio.textContent = down === 0 ? "∞" : (up / down).toFixed(2);
+    // Audit totals
+    const up = transactions.filter((t) => t.type === "up").reduce((s, t) => s + (t.amount || 0), 0);
+    const down = transactions.filter((t) => t.type === "down").reduce((s, t) => s + (t.amount || 0), 0);
+    const ratio = down === 0 ? Infinity : up / down;
 
-    // Pass / Fail from progress grades
-    pfPass.textContent = progress.filter(p => p.grade === 1).length;
-    pfFail.textContent = progress.filter(p => p.grade === 0).length;
+    audUp.textContent = fmtShort(up);
+    audDown.textContent = fmtShort(down);
+    if (audRatio) audRatio.textContent = ratio === Infinity ? "∞" : ratio.toFixed(2);
+    auditBig.textContent = ratio === Infinity ? "∞" : ratio.toFixed(2);
 
-    // SVG charts
-    const points = buildXpPoints(transactions);
-    const topRows = buildTopProjectRows(transactions);
+    // Pass/Fail meaning: progress table grades
+    const passCount = progress.filter((p) => p.grade === 1).length;
+    const failCount = progress.filter((p) => p.grade === 0).length;
+    const totalAttempts = passCount + failCount;
+    const passRate = totalAttempts ? (passCount / totalAttempts) * 100 : 0;
 
-    renderXpAreaChart(xpChart, points);
-    renderTopProjectsBarChart(topChart, topRows);
+    pfPass.textContent = passCount.toString();
+    pfFail.textContent = failCount.toString();
+    pfBig.textContent = totalAttempts ? `${Math.round(passRate)}%` : "—";
+
+    // Charts
+    renderXpAreaChart(xpChart, buildXpPoints(transactions));
+    renderTopProjectsBarChart(topChart, buildTopProjectRows(transactions));
+    renderPassFailDonut(pfChart, passCount, failCount);
+    renderAuditCompare(auditChart, up, down);
 
   } catch (err) {
     logout();
     location.hash = "#login";
     setView("login");
-    loginError.textContent = err.message || "Failed to load dashboard.";
+    loginError.textContent = err.message || "Failed to load profile.";
   }
 }
 

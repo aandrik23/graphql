@@ -1,116 +1,131 @@
 <!doctype html>
-<html lang="el">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GraphQL Profile</title>
+  <link rel="icon" href="data:," />
   <link rel="stylesheet" href="./styles.css" />
 </head>
-
 <body>
   <header class="top">
-    <div class="brand">My GraphQL Profile</div>
+    <div class="brand">GraphQL Profile</div>
     <button id="logoutBtn" class="btn ghost" hidden>Logout</button>
   </header>
 
   <main class="wrap">
+
+    <!-- LOGIN VIEW -->
     <section id="loginView" class="card">
       <h1>Login</h1>
-      <p class="muted">
-        Enter <b>username or email and password</b> to get a JWT.
-      </p>
+      <p class="muted">Enter username/email and password to get a JWT.</p>
 
-      <!--Login form-->
-      <form id="loginForm" class="form">
+      <form id="loginForm" class="form" autocomplete="on">
         <label>
-          Username / Email :
-          <input
-            id="identifier"
-            required
-            autocomplete="username"
-            placeholder="Enter your username or email"
-          />
+          Username / Email
+          <input id="identifier" autocomplete="username" placeholder="Enter your username or email." />
         </label>
 
         <label>
-          Password :
-          <input
-            id="password"
-            type="password"
-            required
-            autocomplete="current-password"
-            placeholder="Enter your password"
-          />
+          Password
+          <input id="password" type="password" autocomplete="current-password" placeholder="Enter your password." />
         </label>
+
         <button class="btn primary" type="submit">Login</button>
-
-        <div id="loginError" class="error" role="alert"></div>
+        <div id="loginError" class="error"></div>
       </form>
     </section>
 
-    <!--PROFILE VIEW-->
+    <!-- PROFILE VIEW -->
     <section id="profileView" hidden>
-      <div class="grid">
-        <div class="card">
-          <h2>Identity</h2>
-          <div class="kv">
-            <div>
-              <span class="muted">Login</span>
-              <div id="pLogin">—</div>
-            </div>
-            <div>
-              <span class="muted">User ID</span>
-              <div id="pId">—</div>
-            </div>
-          </div>
-          <div class="big" id="xpTotal">Total XP: —</div>
+
+      <!-- HERO / PROFILE CARD -->
+      <div class="card" style="display:flex; gap:18px; align-items:center;">
+        <div style="
+          width:70px;height:70px;border-radius:18px;
+          background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(6,182,212,.80));
+          display:flex;align-items:center;justify-content:center;
+          font-weight:900;font-size:26px; letter-spacing:.5px;">
+          <span id="avatarInitials">AR</span>
         </div>
 
-        <div class="card">
-          <h2>Audit ratio</h2>
-          <div class="kv">
-            <div>
-              <span class="muted">Up</span>
-              <div id="audUp">—</div>
-            </div>
-            <div>
-              <span class="muted">Down</span>
-              <div id="audDown">—</div>
-            </div>
-            <div>
-              <span class="muted">Ratio</span>
-              <div id="audRatio">—</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>Pass / Fail</h2>
-          <div class="kv">
-            <div>
-              <span class="muted">Pass</span>
-              <div id="pfPass">—</div>
-            </div>
-            <div>
-              <span class="muted">Fail</span>
-              <div id="pfFail">—</div>
-            </div>
+        <div style="flex:1;">
+          <h1 style="margin-bottom:6px;">
+            <span id="fullName">Student Profile</span>
+          </h1>
+          <div class="muted" style="display:flex;gap:14px;flex-wrap:wrap;">
+            <span class="badge">Login: <span id="pLogin">—</span></span>
+            <span class="badge">User ID: <span id="pId">—</span></span>
+            <span class="badge">Total XP: <span id="xpTotal">—</span></span>
           </div>
         </div>
       </div>
 
-      <!-- statistics section with SVG charts-->
-       <div class="grid">
-         <div class="card">
-            <h2>XP over time</h2>
-            <svg id="xpChart"></svg>
-         </div>
+      <!-- SMALL STATS ROW -->
+      <div class="grid" style="margin-top:16px;">
+        <div class="card">
+          <h2>Total XP</h2>
+          <div class="big" id="xpBig">—</div>
+          <div class="muted" id="xpMeta">—</div>
+        </div>
 
-         <div class="card">
-            <h2>Top projects XP</h2>
-            <svg id="topChart"></svg>
-         </div>
-       </div>
+        <div class="card">
+          <h2>Audit ratio</h2>
+          <div class="big" id="auditBig">—</div>
+          <div class="muted">Up: <span id="audUp">—</span> • Down: <span id="audDown">—</span></div>
+        </div>
+
+        <div class="card">
+          <h2>Pass / Fail</h2>
+          <div class="big" id="pfBig">—</div>
+          <div class="muted">
+            Pass: <span id="pfPass">—</span> • Fail: <span id="pfFail">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATISTICS -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:22px;">
+        <h1 style="font-size:18px;margin:0;">Statistics</h1>
+        <span class="badge">SVG Charts</span>
+      </div>
+
+      <div class="grid" style="margin-top:12px;">
+        <div class="card">
+          <h2>XP over time</h2>
+          <p class="muted" style="margin-top:-4px;margin-bottom:10px;">
+            Cumulative XP growth (transactions type: <b>xp</b>).
+          </p>
+          <svg id="xpChart" aria-label="XP over time chart"></svg>
+        </div>
+
+        <div class="card">
+          <h2>Top projects XP</h2>
+          <p class="muted" style="margin-top:-4px;margin-bottom:10px;">
+            Sum of XP grouped by <b>path</b> (Top 10).
+          </p>
+          <div id="topChartWrap" style="max-height:260px; overflow:auto; border-radius:14px;">
+            <svg id="topChart" aria-label="Top projects XP chart"></svg>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Pass / Fail ratio</h2>
+          <p class="muted" style="margin-top:-4px;margin-bottom:10px;">
+            Based on <b>progress</b> table grades (grade 1 = pass, grade 0 = fail).
+          </p>
+          <svg id="pfChart" class="mini" aria-label="Pass Fail chart"></svg>
+        </div>
+
+        <div class="card">
+          <h2>Audit done vs received</h2>
+          <p class="muted" style="margin-top:-4px;margin-bottom:10px;">
+            Based on transaction types <b>up</b> and <b>down</b>.
+          </p>
+          <svg id="auditChart" class="mini" aria-label="Audit chart"></svg>
+        </div>
+      </div>
+
     </section>
   </main>
 
