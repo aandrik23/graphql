@@ -15,10 +15,10 @@ This project was developed as part of the Zone01 curriculum to demonstrate:
 ## 🌍 Live Demo
 
 🔗 **Live Website:**  
-https://aandriko23.github.io/graphql/
+https://aandrik23.github.io/graphql/
 
 🔗 **GitHub Repository:**  
-https://github.com/aandriko23/graphql
+https://github.com/aandrik23/graphql
 
 ---
 
